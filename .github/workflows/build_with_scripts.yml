@@ -19,6 +19,7 @@ on:
           - 'DerpFest'
           - 'PixelOS'
           - 'RisingOS'
+          - 'AOSPA'
        DEVICE_CODENAME:
         description: "Device codename:"
         required: true
@@ -95,6 +96,9 @@ jobs:
         "RisingOS")
           export PROJECTFOLDER="/crave-devspaces/RisingOS"
           export PROJECTID="86"
+        ;;
+        "AOSPA")
+          export PROJECTFOLDER="/crave-devspaces/AOSPA"
         ;;
         esac
         
