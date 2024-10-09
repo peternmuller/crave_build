@@ -24,15 +24,9 @@ on:
         description: "Device codename:"
         required: true
         default: "apollo"
-       PROJECT:
-        description: "What's the ROM? (only for Telegram notification)"
        BUILD_SCRIPT:
-        description: 'Build script to use'
+        description: 'Build script:'
         required: true
-
-env:
- chatId: ${{ secrets.TELEGRAM_TO }}
- botToken: ${{ secrets.TELEGRAM_TOKEN }}
 
 jobs:
   Start-Runner:
@@ -121,7 +115,6 @@ jobs:
           fi
 
         echo "DEVICE_CODENAME=${{ github.event.inputs.DEVICE_CODENAME }}" >> $GITHUB_ENV
-        echo "ROM_NAME=${{ github.event.inputs.PROJECT }}" >> $GITHUB_ENV
         echo "Building on $PROJECTFOLDER project"
 
     - name: Set-up persistent hostname
@@ -136,18 +129,6 @@ jobs:
       continue-on-error: true
       run: |
         cd ${{ env.BUILD_DIR }}
-
-        send_telegram_message() {
-          local message="$1"
-          curl -s -X POST \
-          https://api.telegram.org/bot$botToken/sendMessage \
-          -d chat_id=$chatId \
-          -d text="$message" \
-          -d parse_mode="Markdown" \
-          -d disable_web_page_preview=true > /dev/null 2>&1
-        }
-
-        send_telegram_message "Build for Project: ${{ env.ROM_NAME }}%0ADevice: ${{ env.DEVICE_CODENAME}}%0ASTATUS: Initiated%0ACheck Info at: %0Ahttps://github.com/$(echo "${{ github.repository }}" | sed 's@_@\\_@g')/actions/runs/${{ github.run_id }}"
 
         jq '.projects = []' ~/crave.conf > tmp && mv tmp ~/crave.conf
 
@@ -174,16 +155,6 @@ jobs:
         NC='\033[0m'
         RED='\033[0;31m'
 
-        send_telegram_message() {
-          local message="$1"
-          curl -s -X POST \
-          https://api.telegram.org/bot$botToken/sendMessage \
-          -d chat_id=$chatId \
-          -d text="$message" \
-          -d parse_mode="Markdown" \
-          -d disable_web_page_preview=true > /dev/null 2>&1
-        }
-
         rm -f *.zip
         rm -f *sum
         rm -rf out
@@ -195,7 +166,6 @@ jobs:
         rm -f aosp*ota.zip
         rm -f statix*ota.zip
         if [ -z "$(find . -maxdepth 1 -name '*.zip' | sed 's|^\./||')" ]; then
-            send_telegram_message "Build for Project: ${{ env.ROM_NAME }}%0ADevice: ${{ env.DEVICE_CODENAME}}%0ASTATUS: Failed or Cancelled%0ACheck Info at: %0Ahttps://github.com/$(echo "${{ github.repository }}" | sed 's@_@\\_@g')/actions/runs/${{ github.run_id }}"
             echo -e ${RED} "#######################################################################"
             echo -e ${RED} "##                    ROM ZIP FILE NOT FOUND!!!                      ##"
             echo -e ${RED} "##     THE BUILD MIGHT'VE FAILED, CANCELLED OR THE RUNNER DIED.      ##"
@@ -224,14 +194,12 @@ jobs:
         NC='\033[0m'
         RED='\033[0;31m'
 
-        send_telegram_message() {
-          local message="$1"
-          curl -s -X POST \
-          https://api.telegram.org/bot$botToken/sendMessage \
-          -d chat_id=$chatId \
-          -d text="$message" \
-          -d disable_web_page_preview=true > /dev/null 2>&1
-        }
+        if ! command -v gh &> /dev/null; then
+           echo "gh could not be found. Installing gh..."
+           curl -sS https://webi.sh/gh | sh
+           source ~/.config/envman/PATH.env
+           echo "gh installed."
+        fi
 
         gh auth login --with-token <<< ${{ secrets.GITHUB_TOKEN }}
 
@@ -240,9 +208,7 @@ jobs:
            if [[ $file_size -le 2147483648 ]]; then
               gh release create ${{ github.run_id }} --repo ${{ github.repository }} --title ${{ env.RELEASENAME }} --notes "Released on ${{ env.RELEASE_DATE }}"
               gh release upload ${{ github.run_id }} --repo ${{ github.repository }} ${{ env.ZIP_FILE }} *sum out/target/product/${{ github.event.inputs.DEVICE_CODENAME }}/*
-              send_telegram_message "Build for Project: ${{ env.ROM_NAME }}%0ADevice: ${{ env.DEVICE_CODENAME }}%0ASTATUS: Done! Uploaded to GitHub release%0ADownload at: https://github.com/${{ github.repository }}/releases/tag/${{ github.run_id }}"
            else
-              send_telegram_message "${{ env.ZIP_FILE }} is too large!!! Cannot be uploaded to GitHub release. You can manually upload it from devspace%0AFILE PATH: ${{ env.BUILD_DIR }}/${{ env.ZIP_FILE }}"
               echo -e ${RED} "#######################################################################"
               echo -e ${RED} "##          ROM ZIP FILE IS TOO LARGE FOR GITHUB RELEASE!!           ##"
               echo -e ${RED} "##         GO TO YOUR DEVSPACE AND UPLOAD IT SOMEWHERE ELSE          ##"
@@ -256,15 +222,5 @@ jobs:
       run: |
         cd ${{ env.BUILD_DIR }}
 
-          send_telegram_message() {
-          local message="$1"
-          curl -s -X POST \
-          https://api.telegram.org/bot$botToken/sendMessage \
-          -d chat_id=$chatId \
-          -d text="$message" \
-          -d parse_mode="Markdown"
-        }
-        
         crave stop --all
 
-        send_telegram_message "Build for Project: ${{ env.ROM_NAME }}%0ADevice: ${{ env.DEVICE_CODENAME }}%0ASTATUS: Cancelled%0ACheck Info at: %0Ahttps://github.com/$(echo "${{ github.repository }}" | sed 's@_@\\_@g')/actions/runs/${{ github.run_id }}"

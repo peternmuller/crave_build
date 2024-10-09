@@ -14,11 +14,6 @@ on:
         default: apollo
         required: true
 
-env:
- chatId: ${{ secrets.TELEGRAM_TO }}
- botToken: ${{ secrets.TELEGRAM_TOKEN }}
-
-
 jobs:
   Start-Runner:
     runs-on: ubuntu-latest
@@ -119,30 +114,3 @@ jobs:
           filename: ${{ env.FILE_NAME }}
           overwrite: "true"
  
-      - name: Telegram Notification (if success)
-        if:  ${{ success() }}
-        run: |
-          send_telegram_message() {
-            local message="$1"
-            curl -s -X POST \
-            https://api.telegram.org/bot$botToken/sendMessage \
-            -d chat_id=$chatId \
-            -d text="$message"
-          }
-
-          send_telegram_message "${{ env.FILE_NAME }} Successfully sent to Google Drive"
-
-      - name: Telegram Notification (if fail)
-        if:  ${{ failure() }}
-        run: |
-         send_telegram_message() {
-            local message="$1"
-            curl -s -X POST \
-            https://api.telegram.org/bot$botToken/sendMessage \
-            -d chat_id=$chatId \
-            -d text="$message" \
-            -d parse_mode="Markdown" \
-            -d disable_web_page_preview=true
-         }
-
-         send_telegram_message "Uploading to Google Drive failed! %0ACheck Info at: https://github.com/$(echo "${{ github.repository }}" | sed 's@_@\\_@g')/actions/runs/${{ github.run_id }}%0A"

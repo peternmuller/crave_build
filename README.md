@@ -1,10 +1,7 @@
 ## Setup Instructions
-
-This workflow uses Telegram bot to notify you about the build status
-
 ### Prerequisites
 
-Before proceeding, ensure you're already familiar how [foss.crave.io](https://foss.crave.io) works and the original [workflow](https://github.com/sounddrill31/crave_aosp_builder).
+Before proceeding, ensure that you're already familiar how [foss.crave.io](https://foss.crave.io) works and the original [workflow](https://github.com/sounddrill31/crave_aosp_builder).
 
 ### Steps
 
@@ -12,12 +9,10 @@ Before proceeding, ensure you're already familiar how [foss.crave.io](https://fo
 
 2. **Configure Repository Secrets:**
    - Go to `Settings -> Security -> Secrets and Variables -> Actions`.
-   - Gert your Crave's username and authentication token from `crave.conf` on foss.crave.io.
+   - Get your Crave's username and authentication token from `crave.conf` on foss.crave.io.
    - Create the following Repository Secrets:
      - `CRAVE_USERNAME`: Your crave username from `crave.conf`.
      - `CRAVE_TOKEN`: Your authentication token from `crave.conf`.
-     - `TELEGRAM_TO`: Your Telegram chat ID.
-     - `TELEGRAM_TOKEN`: Your Telegram Bot Token.
 
 3. **Set Workflow Permissions:**
    - Go to `Settings -> Code and Automation -> Actions -> General`.
@@ -44,7 +39,6 @@ Before proceeding, ensure you're already familiar how [foss.crave.io](https://fo
 
 1. **Create Your Build Script:**
    - Inside the repository's `scripts` folder, create your build script with your preferred name.
-   - Ensure all commands are enclosed within `crave run --no-patch "<commands>"`.
    - Add all build commands in the correct order (assuming you're already familiar with AOSP compilation).
 
 2. **Run the Workflow:**
@@ -53,7 +47,7 @@ Before proceeding, ensure you're already familiar how [foss.crave.io](https://fo
    - On the right side, select "Run workflow".
      - Choose the base project.
      - If your ROM isn't listed, select the closest project and `repo init` the ROM manifest within your build script (refer to existing scripts).
-     - Enter your device codename, ROM name for Telegram notifications, and the build script to use (located in the `scripts` folder).
+     - Enter your device codename and the build script to use (located in the `scripts` folder).
 
 3. **Execute the Workflow:**
    - Run the workflow.
@@ -62,7 +56,7 @@ Before proceeding, ensure you're already familiar how [foss.crave.io](https://fo
 
 - **Dirty Builds:** If you wish to perform a dirty build after a successful one, **DO NOT CHANGE THE BASE PROJECT**! Ensure you're using the same project where the initial successful build is.
   
-- **Release Limits:** Due to GitHub's 2GB per file limit on releases, if your compiled ROM zip is below 2GB, it will be uploaded to this repository's release page. If it exceeds 2GB, it will remain in your devspace for you to upload elsewhere.
+- **Release Limits:** Due to GitHub's 2GB per file limit on releases, if your compiled ROM zip is below 2GB, it will be uploaded to this repository's release page. If it exceeds 2GB, it will remain in your devspace for you to upload elsewhere. (Go to foss.crave.io to log in to your devspace)
 
 - **Compiled Objects:** **DO NOT START ANOTHER BUILD WITHOUT SECURING THE COMPILED OBJECTS FROM THE PREVIOUS BUILD**! (Upload or move it out of the build directory) Compiled objects will be pulled to devspace but deleted upon starting another build to avoid clogging devspace storage.
   - Objects that will be pulled to devspace are:
